@@ -8,12 +8,13 @@ const WORK_ORDERS_BRANCH = 'work-orders';
 const makeGit = (cwd: string) => {
   return async (args: string[], options = {}) => {
     const child = spawn('git', args, {cwd, ...options});
+    let error = '';
+
+    child.stderr.on('data', (chunk) => error += chunk);
+
     await new Promise<void>((resolve, reject) => {
       child.on('close', (code) => {
-        if (code != 0) {
-          reject();
-        }
-        resolve();
+        code === 0 ? resolve() : reject(error);
       });
     });
   };
