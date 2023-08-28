@@ -3,6 +3,7 @@ import {spawn} from 'node:child_process';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 
+const WORK_ORDERS_REMOTE = 'git@github.com:bocoup/aria-at-response-collector.git';
 const WORK_ORDERS_BRANCH = 'work-orders';
 
 const makeGit = (cwd: string) => {
@@ -25,7 +26,7 @@ export default async () => {
   const git = makeGit(dir);
 
   try {
-    await git(['clone', 'git@github.com:bocoup/aria-at-gh-actions-helper.git', '--branch', WORK_ORDERS_BRANCH, '--depth', '1', '.']);
+    await git(['clone', WORK_ORDERS_REMOTE, '--branch', WORK_ORDERS_BRANCH, '--depth', '1', '.']);
     await git(['commit', '--allow-empty', '--message', 'things\n\nand stuff']);
     await git(['push', 'origin', WORK_ORDERS_BRANCH]);
   } finally {
