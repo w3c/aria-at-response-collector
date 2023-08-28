@@ -1,0 +1,20 @@
+name: Simulated AT Response Collection
+on:
+  push:
+    branches: [work-orders]
+jobs:
+  simulate-at-response-collection:
+    runs-on: ubuntu-22.04
+    steps:
+      # package-lock.json must be present for "actions/setup-node@v3" to succeed
+      - uses: actions/checkout@v3
+        with:
+          ref: work-orders
+      - name: Install Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Just do some things for a while
+        run: |
+          node -e 'Array.from(Array(120)).forEach((_, i) => setTimeout(() => console.log(new Date().toISOString() + ":" + Math.round(i/1.2) + "%"), i*1000))'
