@@ -6,20 +6,23 @@ import createWorkOrder from './create-work-order';
 const app = express();
 const port = 8000;
 
-const makeError = (query: QueryString.ParsedQs) => {
-  if (query.result !== 'failure') {
-    return null;
-  }
+const makeResult = (query: QueryString.ParsedQs) => {
+  if (query.result === 'success') {
+    const workflowRunInfo = typeof query.id === 'string' ?
+      `workflow ID: ${query.id}` : 'no workflow ID found';
+    return `<div>Success! (${workflowRunInfo})</div>`;
+  } else if (query.result === 'failure') {
+    if (typeof query.reason !== 'string') {
+      return '<div>Unknown error.</div>';
+    }
 
-  if (typeof query.reason !== 'string') {
-    return '<div>Unknown error.</div>';
+    return `<div>Error: ${atob(query.reason)}</div>`;
   }
-
-  return `<div>${atob(query.reason)}</div>`;
+  return '';
 };
 
 app.get('/', (req, res) => {
-  const error = makeError(req.query);
+  const result = makeResult(req.query);
 
   res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -27,7 +30,7 @@ app.get('/', (req, res) => {
   <meta charset="utf-8">
 </head>
 <body>
-  ${error}
+  ${result}
   <form method="post" action="/go">
     <input type="submit" value="Go" />
   </form>
@@ -38,8 +41,8 @@ app.get('/', (req, res) => {
 
 app.post('/go', async (req, res) => {
   try {
-    await createWorkOrder();
-    res.redirect('/?result=success');
+    const workflowId = await createWorkOrder();
+    res.redirect(`/?result=success&id=${workflowId}`);
   } catch (err) {
     res.redirect(`/?result=failure&reason=${btoa(err)}`);
   }
