@@ -23,8 +23,12 @@ const makeGit = (cwd: string) => {
   };
 };
 
+interface WorkflowRun {
+  id: string,
+}
+
 // https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-repository
-const getWorkflowRuns = async (headSha: string) => {
+const getWorkflowRuns = async (headSha: string): Promise<WorkflowRun[]> => {
   const response = await fetch(
     `https://api.github.com/repos/bocoup/aria-at-response-collector/actions/runs?head_sha=${headSha}`,
     {
@@ -47,14 +51,14 @@ const getWorkflowRuns = async (headSha: string) => {
     throw new Error(`Unrecognized response: ${JSON.stringify(body)}`);
   }
 
-  return body;
+  return body.workflow_runs;
 };
 
-const POLL_TIMEOUT = 10 * 1000;
-const POLL_PERIOD = 300;
+const POLL_TIMEOUT = 30 * 1000; // 30 seconds
+const POLL_PERIOD = 500; // one half of one second
 
 const pollForWorkflowRun = async (headSha: string) => {
-  const timeout = new Promise((_, reject) => {
+  const timeout = new Promise<WorkflowRun[]>((_, reject) => {
       setTimeout(
         () => reject(`Timed out waiting for a Workflow Run for SHA ${headSha}`),
         POLL_TIMEOUT
@@ -62,14 +66,16 @@ const pollForWorkflowRun = async (headSha: string) => {
   });
 
   while (true) {
-    const response = await Promise.race([getWorkflowRuns(headSha), timeout]);
+    const workflowRuns = await Promise.race([getWorkflowRuns(headSha), timeout]);
 
-    const count = response.workflow_runs.length;
-    if (count === 1) {
-      return response.workflow_runs[0].id;
-    } else if (count > 1) {
+    if (workflowRuns.length === 1) {
+      return workflowRuns[0].id;
+    } else if (workflowRuns.length > 1) {
+      const ids = workflowRuns
+        .map((run) => run.id)
+        .join(', ');
       throw new Error(
-        `Expected one Workflow Run for SHA ${headSha} but found ${count}`
+        `Expected one Workflow Run for SHA ${headSha} but found ${workflowRuns.length}. IDs: ${ids}`
       );
     }
 
