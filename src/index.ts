@@ -44,7 +44,7 @@ app.post('/go', async (req, res) => {
     const workflowId = await createWorkOrder();
     res.redirect(`/?result=success&id=${workflowId}`);
   } catch (err) {
-    res.redirect(`/?result=failure&reason=${btoa(err)}`);
+    res.redirect(`/?result=failure&reason=${btoa(String(err))}`);
   }
 });
 
