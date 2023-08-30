@@ -2,6 +2,7 @@ import type QueryString from 'qs';
 import express from 'express';
 
 import createWorkOrder from './create-work-order';
+import {rateLimitInfo} from './fetch-gh';
 
 const app = express();
 const port = 8000;
@@ -34,6 +35,9 @@ app.get('/', (req, res) => {
   <form method="post" action="/go">
     <input type="submit" value="Go" />
   </form>
+<!--
+${JSON.stringify(rateLimitInfo(), null, 2)}
+-->
 </body>
 </html>
 `);
