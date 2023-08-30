@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import fetchGH from './fetch-gh';
 
 const WORK_ORDERS_REMOTE = 'git@github.com:bocoup/aria-at-response-collector.git';
 const WORK_ORDERS_BRANCH = 'work-orders';
@@ -29,14 +30,8 @@ interface WorkflowRun {
 
 // https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-repository
 const getWorkflowRuns = async (headSha: string): Promise<WorkflowRun[]> => {
-  const response = await fetch(
-    `https://api.github.com/repos/bocoup/aria-at-response-collector/actions/runs?head_sha=${headSha}`,
-    {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    }
+  const response = await fetchGH(
+    `repos/bocoup/aria-at-response-collector/actions/runs?head_sha=${headSha}`
   );
 
   if (!response.ok) {
