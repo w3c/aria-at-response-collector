@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require ts-node/register --ui tdd test/**.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +15,10 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^20.5.3",
+    "mocha": "^10.2.0",
+    "rxjs": "^7.8.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
