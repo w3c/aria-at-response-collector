@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node .",
-    "test": "mocha --require ts-node/register --ui tdd test/**.ts"
+    "test": "mocha --require ts-node/register --ui tdd test/tests.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,57 +1,18 @@
-import type QueryString from 'qs';
-import express from 'express';
+import createServer from './server';
+import GITHUB_API_DOMAIN from './github-api-domain';
 
-import createWorkOrder from './create-work-order';
-import {rateLimitInfo} from './fetch-gh';
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8000;
 
-const app = express();
-const port = 8000;
+if (GITHUB_API_DOMAIN !== 'https://api.github.com') {
+  (async () => {
+    const start = (await import('../test/mock-github-server')).default;
 
-const makeResult = (query: QueryString.ParsedQs) => {
-  if (query.result === 'success') {
-    const workflowRunInfo = typeof query.id === 'string' ?
-      `workflow ID: ${query.id}` : 'no workflow ID found';
-    return `<div>Success! (${workflowRunInfo})</div>`;
-  } else if (query.result === 'failure') {
-    if (typeof query.reason !== 'string') {
-      return '<div>Unknown error.</div>';
-    }
+    start(GITHUB_API_DOMAIN, port);
+  })();
+}
 
-    return `<div>Error: ${atob(query.reason)}</div>`;
-  }
-  return '';
-};
+const server = createServer();
 
-app.get('/', (req, res) => {
-  const result = makeResult(req.query);
-
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-</head>
-<body>
-  ${result}
-  <form method="post" action="/go">
-    <input type="submit" value="Go" />
-  </form>
-<!--
-${JSON.stringify(rateLimitInfo(), null, 2)}
--->
-</body>
-</html>
-`);
-});
-
-app.post('/go', async (req, res) => {
-  try {
-    const workflowId = await createWorkOrder();
-    res.redirect(`/?result=success&id=${workflowId}`);
-  } catch (err) {
-    res.redirect(`/?result=failure&reason=${btoa(String(err))}`);
-  }
-});
-
-app.listen(port, () => {
+server.listen(port).then(() => {
   console.log(`server started at http://localhost:${port}`);
 });
